@@ -7,5 +7,5 @@
     + PyramidBox
     + CenterFace (inherited from CenterNet)
 
-  + Implementing NLP methods in Pytorch
+ + Implementing NLP methods in Pytorch
   
