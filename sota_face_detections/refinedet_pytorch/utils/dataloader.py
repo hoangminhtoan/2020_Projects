@@ -132,7 +132,7 @@ class CSVDataset(Dataset):
             with self._open_for_csv(self.class_list) as file:
                 self.classes = self.load_classes(csv.reader(file, delimiter=','))
         except ValueError as e:
-            raise_from(ValueError('invalid csv class file: {}: {}'.format(self.class_list, e)), None)
+            raise ValueError('invalid csv class file: {}: {}'.format(self.class_list, e))
 
         self.labels = {}
         for key, value in self.classes.items():
@@ -143,9 +143,73 @@ class CSVDataset(Dataset):
             with self._open_for_csv(self.train_file) as file:
                 self.image_data = self._read_annotations(csv.reader(file, delimiter=','), self.classes)
         except ValueError as e:
-            raise_from(ValueError('invalid csv annotations file: {}: {}'.format(self.train_file, e)), None)
+            raise ValueError('invalid csv annotations file: {}: {}'.format(self.train_file, e))
         
         self.image_names = list(self.image_data.keys())
+
+    def _parse(self, value, function, fmt):
+        ''' Parse a string into a value, and format a nice ValueError if it fails.
+        Returns `function(value)`.
+        Any `ValueError` raised is catched and a ndw `ValueError` is raised with message 
+        `fmt.format(e)`, where `e` is the caught `ValueError`.
+        '''
+        try:
+            return function(value)
+        except ValueError as e:
+            raise ValueError(fmt.format(e))
+
+    def _open_for_csv(self, path):
+        ''' Open a file with flags sutable for csv.reader
+        This is different for python2 it means with mode `rb`,
+        for python3 this means `r` with `universal newlines.
+        '''
+        if sys.version_info[0] < 3:
+            return open(path, 'rb')
+        else:
+            return open(path, 'r', newline='')
+    
+    def load_classes(self, csv_reader):
+        result = {}
+
+        for line, row in enumerate(csv_reader):
+            line += 1
+
+            try:
+                class_name, class_id = row
+            except ValueError:
+                raise ValueError('line {}: format should be \'class_name, class_id\''.format(line)) 
+            
+            class_id = self._parse(class_id, int, 'line {}: malformed class ID: {{}}'.format(line))
+
+            if class_name in result:
+                raise ValueError('line {}: duplicate class name: \'{}\''.format(line, class_name))
+
+            result[class_name] = class_id
+
+        return result 
+
+    def __len__(self):
+        return len(self.iamge_names)
+
+    def __getitem__(self, idx):
+        img = self.load_image(idx)
+        annot = self.load_annotations(idx)
+        sample = {'img': img, 'annot': annot}
+        if self.transform:
+            sample = self.transform(sample)
+        
+        returnn sample
+
+    def load_image(self, image_index):
+        img = skimage.io.imread(self.image_names[image_index])
+
+        if len(img.shape) == 2:
+            img = skimage.color.gray2rgb(img)
+
+        return img.astype(np.float32) / 255.0
+
+    def load_annotations(self, image_index):
+        
 
     
         
