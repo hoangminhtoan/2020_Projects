@@ -9,12 +9,12 @@ from torchvision import transforms
 from tensorboardX import SummaryWriter
 from torchsummary import summary
 
-from sota_face_detections.refinedet_pytorch.models import resnet
-from sota_face_detections.refinedet_pytorch.utils.dataloader import CocoDataset, CSVDataset, collater, Resizer, AspectRatioBasedSampler, Augmenter, \
+from models import resnet
+from utils.dataloader import CocoDataset, CSVDataset, collater, Resizer, AspectRatioBasedSampler, Augmenter, \
     Normalizer
 from torch.utils.data import DataLoader
 
-from sota_face_detections.refinedet_pytorch.data import coco_eval, csv_eval 
+from data import coco_eval, csv_eval 
 
 import os
 

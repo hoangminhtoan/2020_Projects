@@ -189,7 +189,7 @@ class CSVDataset(Dataset):
         return result 
 
     def __len__(self):
-        return len(self.iamge_names)
+        return len(self.image_names)
 
     def __getitem__(self, idx):
         img = self.load_image(idx)

@@ -3,10 +3,10 @@ import torch
 import math 
 import torch.utils.model_zoo as model_zoo 
 from torchvision.ops import nms 
-from ..layers.layer_utls import BasicBlock, Bottleneck, BBoxTransform, TCB, RCM, ClipBoxes
-from ..utils.anchors import Anchors
-from ..losses.retina_loss import FocalLoss
-from ..losses.fan_loss import AttentionLoss
+from layers.layer_utls import BasicBlock, Bottleneck, BBoxTransform, TCB, RCM, ClipBoxes
+from utils.anchors import Anchors
+from losses.retina_loss import FocalLoss
+from losses.fan_loss import AttentionLoss
 
 model_urls = {
     'resnet18': 'https://download.pytorch.org/models/resnet18-5c106cde.pth',
