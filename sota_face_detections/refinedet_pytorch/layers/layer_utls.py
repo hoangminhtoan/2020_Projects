@@ -5,6 +5,13 @@ import numpy as np
 def conv3x3(in_planes, out_planes, stride=1):
     return nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride, padding=1, bias=False)
 
+def basic_conv(in_planes, out_planes, kernel_size, stride=1, padding=0, dilation=1, group=1, bias=False):
+    return nn.Sequential(
+            nn.Conv2d(in_planes, out_planes, kernel_size=kernel_size, stride=stride, padding=padding, dilation=dilation, groups=group, bias=bias),
+            nn.BatchNorm2d(out_planes),
+            nn.ReLU(inplace=True)
+    )
+
 class BasicBlock(nn.Module):
     expansion = 1
 
@@ -132,10 +139,73 @@ class BottleneckSELayer(nn.Module):
 
 # transfer connection block (TCB)
 class TCB(nn.Module):
-    def __init__(self):
+    def __init__(self, feature_size=256):
         super(TCB, self).__init__()
+        self.conv1 = nn.Sequential(
+            nn.Conv2d(feature_size, feature_size, kernel_size=3, padding=1),
+            nn.BatchNorm2d(feature_size),
+            nn.ReLU(inplace=True)
+        )
 
-        
+        self.conv2 = nn.Sequential(
+            nn.Conv2d(feature_size, feature_size, kernel_size=3, padding=1),
+            nn.BatchNorm2d(feature_size)
+        )
+
+    def forward(self, x):
+        out = self.conv1(x)
+
+        out = self.conv2(out)
+
+        return out
+
+# receptive context module (rcm)
+class RCM(nn.Module):
+    def __init__(self, in_planes, out_planes=256, stride=1, scale=0.1):
+        super(RCM, self).__init__()
+
+        self.scale = scale
+        inter_planes = in_planes // 4
+
+        self.branch0 = nn.Sequential(
+            basic_conv(in_planes, inter_planes, kernel_size=1, stride=1),
+            basic_conv(inter_planes, inter_planes, kernel_size=3, stride=1, padding=1, dilation=1, group=inter_planes)
+        )
+
+        self.branch1 = nn.Sequential(
+            basic_conv(in_planes, inter_planes, kernel_size=1, stride=1),
+            basic_conv(inter_planes, inter_planes, kernel_size=(3, 1), stride=1, padding=(1, 0)),
+            basic_conv(inter_planes, inter_planes, kernel_size=3, stride=1, padding=3, dilation=3, group=inter_planes)
+        )
+
+        self.branch2 = nn.Sequential(
+            basic_conv(in_planes, inter_planes, kernel_size=1, stride=1),
+            basic_conv(inter_planes, inter_planes, kernel_size=(1, 3), stride=1, padding=(0, 1)),
+            basic_conv(inter_planes, inter_planes, kernel_size=3, stride=1, padding=3, dilation=3, group=inter_planes)
+        )
+
+        self.branch3 = nn.Sequential(
+            basic_conv(in_planes, inter_planes // 2, kernel_size=1, stride=1),
+            basic_conv(inter_planes // 2, (inter_planes // 4) * 3, kernel_size=(1, 3), stride=1, padding=(0, 1)),
+            basic_conv((inter_planes // 4) * 3, inter_planes, kernel_size=(3, 1), stride=stride, padding=(1, 0)),
+            basic_conv(inter_planes, inter_planes, kernel_size=3, stride=1, padding=5, dilation=5, group=inter_planes)
+        )
+
+        self.output = basic_conv(inter_planes * 4, 1, kernel_size=1, stride=1)
+        self.act = nn.Sigmod()
+
+    def forward(self, x):
+        x0 = self.branch0(x)
+        x1 = self.branch1(x)
+        x2 = self.branch2(x)
+        x3 = self.branch3(x)
+
+        out = torch.cat((x0, x1, x2, x3), dim=1)
+        out = self.output(out)
+        out = out * self.scale + x
+        out = self.act(out)
+
+        return out
 
 class BBoxTransform(nn.Module):
     def __init__(self, mean=None, std=None):
