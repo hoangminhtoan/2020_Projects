@@ -192,7 +192,7 @@ class RCM(nn.Module):
         )
 
         self.output = basic_conv(inter_planes * 4, 1, kernel_size=1, stride=1)
-        self.act = nn.Sigmod()
+        self.act = nn.Sigmoid()
 
     def forward(self, x):
         x0 = self.branch0(x)

@@ -1,5 +1,6 @@
 import torch.nn as nn 
 import torch 
+import torch.nn.functional as F
 import math 
 import torch.utils.model_zoo as model_zoo 
 from torchvision.ops import nms 
@@ -52,7 +53,7 @@ class PyramidFeatures(nn.Module):
         C2, C3, C4, C5 = inputs
 
         P5_x = self.P5_1(C5)
-        P5_upsampled_x = self.P5_upsampled(P5_x)
+        P5_upsampled_x = self.P5_upsample(P5_x)
         P5_x = self.P5_2(P5_x)
 
         P4_x = self.P4_1(C4)
@@ -125,6 +126,7 @@ class RegressionModel(nn.Module):
 
 class ClassificationModel(nn.Module):
     def __init__(self, num_features_in, num_anchors=9, num_classes=80, prior=0.01, feature_size=256):
+        super(ClassificationModel, self).__init__()
         self.num_classes = num_classes
         self.num_anchors = num_anchors
 
@@ -222,11 +224,11 @@ class ResNet(nn.Module):
 
         prior = 0.01
 
-        self.classificationModel.output.weight.data.fill_(0)
-        self.classificationModel.output.bias.data.fill_(-math.log((1.0 - prior) / prior))
+        self.classificationModel.base_anchor.weight.data.fill_(0)
+        self.classificationModel.base_anchor.bias.data.fill_(-math.log((1.0 - prior) / prior))
 
-        self.regressionModel.output.weight.data.fill_(0)
-        self.regressionModel.output.bias.data.fill_(0)
+        self.regressionModel.base_anchor.weight.data.fill_(0)
+        self.regressionModel.base_anchor.bias.data.fill_(0)
 
         self.freeze_bn()
 
