@@ -1,6 +1,0 @@
-Num training images: 15658
-
-Num training images: 15658
-
-Num training images: 15658
-
