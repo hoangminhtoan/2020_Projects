@@ -10,7 +10,7 @@ from tensorboardX import SummaryWriter
 from torchsummary import summary
 
 from sota_face_detections.refinedet_pytorch.models import resnet
-from  sota_face_detections.refinedet_pytorch.utils.dataloader import CocoDataset, CSVDataset, collater, Resizer, AspectRatioBasedSampler, Augmenter, \
+from sota_face_detections.refinedet_pytorch.utils.dataloader import CocoDataset, CSVDataset, collater, Resizer, AspectRatioBasedSampler, Augmenter, \
     Normalizer
 from torch.utils.data import DataLoader
 
@@ -18,8 +18,6 @@ from sota_face_detections.refinedet_pytorch.data import coco_eval, csv_eval
 
 import os
 
-os.environ["CUDA_VISIBLE_DEVICES"]="6"
-devices = [6, 7]
 
 assert torch.__version__.split('.')[0] == '1'
 
@@ -104,13 +102,13 @@ def main(args=None):
     use_gpu = True
 
     if use_gpu:
-        retinanet = retinanet.cuda('cuda:{}'.format(devices[0]))
+        retinanet = retinanet.cuda()
         
         print(retinanet)
 
         #with open(str(parser.snapshot_path) + '/' + str(parser.model_name) + '.txt', 'a') as f:
 
-    retinanet = torch.nn.DataParallel(retinanet, device_ids=devices).cuda()
+    retinanet = torch.nn.DataParallel(retinanet).cuda()
 
     retinanet.training = True
 
