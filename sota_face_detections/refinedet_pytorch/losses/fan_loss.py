@@ -25,7 +25,7 @@ def calc_iou(a, b):
 
     return IoU
 
-class Attentionloss(nn.Module):
+class AttentionLoss(nn.Module):
 
     def forward(self, img_batch_shape, attention_mask, bboxs):
 
@@ -96,4 +96,3 @@ class Attentionloss(nn.Module):
                 mask_loss.append(F.binary_cross_entropy(mask_predict, mask_gt))
             mask_losses.append(torch.stack(mask_loss).mean())
 
-        return torch.stack(mask_losses).mean(dim=0, keepdim=True)
