@@ -84,20 +84,19 @@ def _get_detections(dataset, retinanet, score_threshold=0.05, max_detections=100
         for index in range(len(dataset)):
             data = dataset[index]
             scale = data['scale']
-            
+
             # run network
             scores, labels, boxes = retinanet(data['img'].permute(2, 0, 1).cuda().float().unsqueeze(dim=0))
-            if isinstance(scores, torch.Tensor):
-                scores = scores.cpu().numpy()
-                labels = labels.cpu().numpy()
-                boxes  = boxes.cpu().numpy()
-        
-                # correct boxes for image scale
-                boxes /= scale
+            scores = scores.cpu().numpy()
+            labels = labels.cpu().numpy()
+            boxes  = boxes.cpu().numpy()
 
-                # select indices which have a score above the threshold
-                indices = np.where(scores > score_threshold)[0]
+            # correct boxes for image scale
+            boxes /= scale
 
+            # select indices which have a score above the threshold
+            indices = np.where(scores > score_threshold)[0]
+            if indices.shape[0] > 0:
                 # select those scores
                 scores = scores[indices]
 
@@ -229,11 +228,12 @@ def evaluate(
         # compute average precision
         average_precision  = _compute_ap(recall, precision)
         average_precisions[label] = average_precision, num_annotations
-    
+
+    print('Precision: {:1.5f} | Recall: {:1.5f}'.format(float(precision.mean()), float(recall.mean())))
     print('\nmAP:')
     for label in range(generator.num_classes()):
         label_name = generator.label_to_name(label)
         print('{}: {}'.format(label_name, average_precisions[label][0]))
     
-    return average_precisions
+    return float(precision.mean()), float(recall.mean()), average_precisions
 

@@ -9,17 +9,17 @@ from torchvision import transforms
 from tensorboardX import SummaryWriter
 from torchsummary import summary
 
-from retinanet import model
-from retinanet.dataloader import CocoDataset, CSVDataset, collater, Resizer, AspectRatioBasedSampler, Augmenter, \
+from sota_face_detections.refinedet_pytorch import model
+from  sota_face_detections.refinedet_pytorch.utils.dataloader import CocoDataset, CSVDataset, collater, Resizer, AspectRatioBasedSampler, Augmenter, \
     Normalizer
 from torch.utils.data import DataLoader
 
-from retinanet import coco_eval
-from retinanet import csv_eval
+from sota_face_detections.refinedet_pytorch.data import coco_eval, csv_eval 
 
 import os
 
-os.environ["CUDA_VISIBLE_DEVICES"]="0, 1, 2"
+os.environ["CUDA_VISIBLE_DEVICES"]="6"
+devices = [6, 7]
 
 assert torch.__version__.split('.')[0] == '1'
 
@@ -36,8 +36,8 @@ def main(args=None):
     parser.add_argument('--csv_val', help='Path to file containing validation annotations (optional, see readme)')
 
 
-    parser.add_argument('--snapshot_path',    help='Path to store snapshots of models during training (defaults to \'./snapshots\')', default='./snapshots/20200227')
-    parser.add_argument('--log_dir',    help='Path to store snapshots of models during training (defaults to \'./logs\')', default='./logs/20200227')
+    parser.add_argument('--snapshot_path',    help='Path to store snapshots of models during training (defaults to \'./snapshots\')', default='./snapshots')
+    parser.add_argument('--log_dir',    help='Path to store snapshots of models during training (defaults to \'./logs\')', default='./logs')
 
     parser.add_argument('--depth', help='Resnet depth, must be one of 18, 34, 50, 101, 152', type=int, default=50)
     parser.add_argument('--epochs', help='Number of epochs', type=int, default=100)
@@ -104,13 +104,13 @@ def main(args=None):
     use_gpu = True
 
     if use_gpu:
-        retinanet = retinanet.cuda()
+        retinanet = retinanet.cuda('cuda:{}'.format(devices[0]))
         
         print(retinanet)
 
         #with open(str(parser.snapshot_path) + '/' + str(parser.model_name) + '.txt', 'a') as f:
 
-    retinanet = torch.nn.DataParallel(retinanet).cuda()
+    retinanet = torch.nn.DataParallel(retinanet, device_ids=devices).cuda()
 
     retinanet.training = True
 
