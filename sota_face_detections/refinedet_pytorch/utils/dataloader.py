@@ -198,7 +198,7 @@ class CSVDataset(Dataset):
         if self.transform:
             sample = self.transform(sample)
         
-        returnn sample
+        return sample
 
     def load_image(self, image_index):
         img = skimage.io.imread(self.image_names[image_index])
@@ -209,8 +209,230 @@ class CSVDataset(Dataset):
         return img.astype(np.float32) / 255.0
 
     def load_annotations(self, image_index):
-        
+        # get ground truth annotations
+        annotation_list = self.image_data[self.image_names[image_index]]
+        annotations = np.zeros((0, 5))
 
+        # some images appear to miss annotations
+        if len(annotation_list) == 0:
+            return annotations 
+
+        # parse annotations
+        for idx, a in enumerate(annotation_list):
+            # some annotations have basically no width / height, skip them
+            x1, x2, y1, y2 = a['x1'], a['x2'], a['y1'], a['y2']
+
+            if (x2 - x1) < 1 or (y2 - y1) < 1:
+                continue
+            
+            annotation = np.zeros((1, 5))
+
+            annotation[0, 0] = x1
+            annotation[0, 1] = y1
+            annotation[0, 2] = x2
+            annotation[0, 3] = y2 
+
+            annotation[0, 4] = self.name_to_label(a['class'])
+            annotations = np.append(annotations, annotation, axis=0)
+
+        return annotations
+
+    def _read_annotations(self, csv_reader, classes):
+        result = {}
+        for line, row in enumerate(csv_reader):
+            line += 1
+
+            try:
+                img_file, x1, y1, x2, y2, class_name = row[:6]
+            except ValueError:
+                raise ValueError('line {}: format should be \'img_fiile, x1, y1, x2, y2, class_name\''.format(line))
+
+            if img_file not in result:
+                result[img_file] = []
+
+            # if a row contains only an image path, it's an image without annotations
+            if (x1, y1, x2, y2, class_name) == ('', '', '', '', ''):
+                continue
+
+            x1 = self._parse(x1, int, 'line {}: malformd x1: {{}}'.format(line))
+            y1 = self._parse(y1, int, 'line {}: malformd y1: {{}}'.format(line))
+            x2 = self._parse(x2, int, 'line {}: malformd x2: {{}}'.format(line))
+            y2 = self._parse(y2, int, 'line {}: malformd y2: {{}}'.format(line))
+
+            # check that the bounding box is valid
+            if x2 <= x1:
+                raise ValueError('line {}: x2 ({}) must be higher than x1 ({})'.format(line, x2, x1))
+
+            if y2 <= y1:
+                raise ValueError('line {}: y2 ({}) must be higher than y1 ({})'.format(line, y2, y1))
+
+            # check if the current class name is correctly present
+            if class_name not in classes:
+                raise ValueError('line {}: unknown class name: \'{}\' (classes: {})'.format(line, class_name, classes))
+
+            result[img_file].append({'x1': x1, 'x2': x2, 'y1': y1, 'y2': y2, 'class': class_name})
+
+        return result 
+
+    def name_to_label(self, name):
+        return self.classes[name]
+
+    def label_to_name(self, label):
+        return self.labels[label]
+
+    def num_classes(self):
+        return max(self.classes.values()) + 1
+
+    def image_aspect_ratio(self, image_index):
+        image = Image.open(self.image_names[image_index])
+        return float(image.width) / float(image.height)
+
+
+def collater(data):
+    imgs = [s['img'] for s in data]
+    annots = [s['annot'] for s in data]
+    scales = [s['scale'] for s in data]
+
+    widths = [int(s.shape[0]) for s in imgs]
+    heights = [int(s.shape[1]) for s in imgs]
+    batch_size = len(imgs)
+
+    max_width = np.array(widths).max()
+    max_height = np.array(heights).max()
+
+    padded_imgs = torch.zeros(batch_size, max_width, max_height)
+
+    for i in range(batch_size):
+        img = imgs[i]
+        padded_imgs[i, :int(img.shape[0]), :int(img.shape[1]), :] = img
+
+    max_num_annots = max(annot.shape[0] for annot in annots)
+
+    if max_num_annots > 0:
+        annot_padded = torch.ones((len(annots), max_num_annots, 5)) * -1
+
+        if max_num_annots > 0:
+            for idx, annot in enumerate(annots):
+                # print (annot.shape)
+                if annot.shape[0] > 0:
+                    annot_padded[idx, :annot.shape[0], :] = annot
+    else:
+        annot_padded = torch.ones((len(annots), 1, 5)) * -1
+
+    padded_imgs = padded_imgs.permute(0, 3, 1, 2) # (batch_size, channels, width, height)
+
+    return {'img': padded_imgs, 'annot': annot_padded, 'scale': scales}
+
+class Resizer(object):
+    def __call__(self, sample, min_size=720, max_size=1280):
+        image, annots = sample['img'], sample['annot']
+        
+        rows, cols, cns = image.shape
+
+        smallest_size = min(rows, cols)
+        largest_size = max(rows, cols)
+        
+        # rescale the image to the smallest side is min_side
+        scale = min_size / smallest_size
+
+        # check if the largest side is now greater than max_side, which can happen
+        # when images have a large aspect ratio
+        if largest_size * scale > max_size:
+            scale = max_size / largest_size
+
+        # resize the image with the computed scale
+        image = skimage.transform.resize(image, (int(round(rows * scale)), int(round(cols * scale))))
+        rows, cols, cns = image.shape
+
+        pad_w = 32 - rows % 32
+        pad_h = 32 - cols % 32
+
+        new_image = np.zeros((rows + pad_w, cols + pad_h, cns)).astype(np.float32)
+        new_image[:rows, :cols, :] = image.astpe(np.float32)
+
+        annots[:, :4] *= scale
+
+        return {'img': torch.from_numpy(new_image), 'annot': torch.from_numpy(annots), 'scale': scale}
+
+class Augmenter(object):
+    def __call__(self, sample, flip_x=0.5):
+        if np.random.rand() < flip_x:
+            image, annots = sample['img'], sample['annot']
+            image = image[:, ::-1, :]
+
+            rows, cols, cns = image.shape
+
+            x1 = annots[:, 0].copy()
+            x2 = annots[:, 2].copy() 
+
+            x_tmp = x1.copy() 
+
+            annots[:, 0] = cols - x2 
+            annots[:, 2] = cols - x_tmp 
+
+            sample = {'img': image, 'annot': annots}
+        return sample
+
+class Normalizer(object):
+    def __init__(self):
+        self.mean = np.array([[[0.485, 0.456, 0.406]]])
+        self.std = np.array([[[0.229, 0.224, 0.225]]])
+
+    def __call__(self, sample):
+        image, annots = sample['img'], sample['annot']
+
+        return {'img': ((image.astype(np.float32) - self.mean) / self.std), 'annot': annots}
+
+class UnNormalizer(object):
+    def __init__(self, mean=None, std=None):
+        if mean == None:
+            self.mean = [0.485, 0.456, 0.406]
+        else:
+            self.mean = mean
+
+        if std == None:
+            self.std = [0.229, 0.224, 0.225]
+        else:
+            self.std = std 
+
+    def __call__(self, tensor):
+        '''
+        Args:
+            tensor (Tensor) : Tensor image of size (C, H, W) to be normalized
+        Returns:
+            Tensor          : Normalized image
+        '''
+        for t, m, s in zip(tensor, self.mean, self.std):
+            t.mul_(s).add_(m)
+        
+        return tensor
+
+class AspectRatioBasedSampler(Sampler):
+    def __init__(self, data_source, batch_size, drop_last):
+        self.data_source = data_source
+        self.batch_size = batch_size
+        self.drop_last = drop_last 
+        self.groups = self.group_images()
+
+    def __iter__(self):
+        random.shuffle(self.groups)
+        for group in self.groups:
+            yield group
+
+    def __len(self):
+        if self.drop_last:
+            return len(self.data_source) // self.batch_size
+        else:
+            return (len(self.data_source) + self.batch_size - 1) // self.batch_size
+
+    def group_images(self):
+        # determine the order of the images
+        order = list(range(len(self.data_source)))
+        order.sort(key=lambda x: self.data_source.image_aspect_ratio(x))
+
+        # divide into groups, one group = one batch
+        return [[order[x % len(order)] for x in range(i, i + self.batch_size)] for i in range(0, len(order), self.batch_size)]
+        
     
         
 
