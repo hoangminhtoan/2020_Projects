@@ -96,3 +96,6 @@ class AttentionLoss(nn.Module):
                 mask_loss.append(F.binary_cross_entropy(mask_predict, mask_gt))
             mask_losses.append(torch.stack(mask_loss).mean())
 
+        return torch.stack(mask_losses).mean(dim=0, keepdim=True)
+
+
