@@ -56,19 +56,6 @@ def calc_iou_vis(a, b):
 
     return IoU
 
-def IoG(box_a, box_b):
-
-    inter_xmin = torch.max(box_a[:, 0], box_b[:, 0])
-    inter_ymin = torch.max(box_a[:, 1], box_b[:, 1])
-    inter_xmax = torch.min(box_a[:, 2], box_b[:, 2])
-    inter_ymax = torch.min(box_a[:, 3], box_b[:, 3])
-    Iw = torch.clamp(inter_xmax - inter_xmin, min=0)
-    Ih = torch.clamp(inter_ymax - inter_ymin, min=0)
-    I = Iw * Ih
-    G = (box_a[:, 2] - box_a[:, 0]) * (box_a[:, 3] - box_a[:, 1])
-    return I / G
-
-
 class FocalLoss(nn.Module):
     # def __init__(self):
 
@@ -183,6 +170,5 @@ class FocalLoss(nn.Module):
             else:
                 regression_losses.append(torch.tensor(0).float().cuda())
 
-        return torch.stack(classification_losses).mean(dim=0, keepdim=True), torch.stack(regression_losses).mean(dim=0,
-                                                                                                                 keepdim=True)
+        return torch.stack(classification_losses).mean(dim=0, keepdim=True), torch.stack(regression_losses).mean(dim=0, keepdim=True)
 
