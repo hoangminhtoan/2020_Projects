@@ -97,5 +97,3 @@ class AttentionLoss(nn.Module):
             mask_losses.append(torch.stack(mask_loss).mean())
 
         return torch.stack(mask_losses).mean(dim=0, keepdim=True)
-
-

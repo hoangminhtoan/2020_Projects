@@ -1,2 +1,0 @@
-Num training images: 15658
-
