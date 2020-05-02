@@ -212,7 +212,6 @@ class BottleneckSEBlock(nn.Module):
 
 # Additional Attention Context Module
 
-
 class ContextModule(nn.Module):
     def __init(self, in_planes, out_planes=256):
         super(ContextModule, self).__init__()
