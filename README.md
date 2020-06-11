@@ -10,9 +10,9 @@ This project include serveral personal taks in 2020
 * [Qt](#qt)
 
 ## Requirements
-Pytorch
-TensorFlow2
-Python3
+* Pytorch
+* TensorFlow2
+* Python3
 
 ## Face Detections
 
