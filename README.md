@@ -1,12 +1,21 @@
-#2020_Personal_Projects
-- This repository consists two parts
-  + Implementing SOTA methods in face detection
-    + RetinaNet
-    + RefineDet
-    + Face Attention Network
-    + PyramidBox
-    + CenterFace (inherited from CenterNet)
-  + Implementing NLP methods in Pytorch
+# 2020_Personal_Projects
+This project include serveral personal taks in 2020
+
+## Table of Contents
+
+* [FaceDetections](#Face Detections)
+* [GANs] (#GANs)
+* [Python_DL] (#Deep Learning with Python)
+* [Qt] (#Study PyQt)
+
+## Face Detections
+
+## GANs
+
+## Deep Learning with Python
+
+## Qt
+
     
 
   
