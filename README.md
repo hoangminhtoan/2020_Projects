@@ -3,10 +3,10 @@ This project include serveral personal taks in 2020
 
 ## Table of Contents
 
-* [FaceDetections](#Face Detections)
-* [GANs] (#GANs)
-* [Python_DL] (#Deep Learning with Python)
-* [Qt] (#Study PyQt)
+* [FaceDetections](#face-detections)
+* [GANs](#gans)
+* [Python_DL](#deep-learning-with-python)
+* [Qt](#qt)
 
 ## Face Detections
 
