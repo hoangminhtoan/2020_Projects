@@ -1,33 +1,27 @@
-# 2020_Personal_Projects
-This project include serveral personal taks in 2020
+# Awesome Deep Learning Papers
 
 ## Table of Contents
 
-* [FaceDetections](#face-detections)
-* [GANs](#gans)
-* [LaneDetection](#lane-detections)
-* [Python_DL](#deep-learning-with-python)
-* [Qt](#qt)
+* [Object Detection](#object-detection)
+  * [Face Detection](#face-detection)
+  * [Visual Object Tracking](#visual-object-tracking)
+* [Others](#others)
 
 ## Requirements
 * Pytorch
 * TensorFlow2
 * Python3
 
-## Face Detections
+## Object Detection
+### Face Detection
+  * [RetinaFace](https://arxiv.org/abs/1905.00641)
 
-## GANs
-Implement GANs to understand how it works in both PyTorch and TensorFlow2
-
-## Lane Detections
-Implement lane detection by using deep learning methods. Basically, lane detection is **Object Segmentation**
-
-## Deep Learning with Python
-
-## Qt
-Implementation Qt with Python
-See at https://www.learnpyqt.com/#
-
+### Visual Object Tracking
+  * [ATOM](https://arxiv.org/abs/1811.07628)
+## Others
+### Datasets
+[OTB-100](http://cvlab.hanyang.ac.kr/tracker_benchmark/index.html)
+[UAV123](https://ivul.kaust.edu.sa/Pages/pub-benchmark-simulator-uav.aspx)
     
 
   
