@@ -16,3 +16,8 @@ for name in names{
     print(name)
 }
 
+let precomposed: Character = "\u{D55C}"
+
+let decomposed: Character = "\u{1112}\u{1161}\u{11AB}"
+print(decomposed)
+
