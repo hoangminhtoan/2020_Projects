@@ -20,8 +20,8 @@
   * [ATOM](https://arxiv.org/abs/1811.07628)
 ## Others
 ### Datasets
-[OTB-100](http://cvlab.hanyang.ac.kr/tracker_benchmark/index.html)
-[UAV123](https://ivul.kaust.edu.sa/Pages/pub-benchmark-simulator-uav.aspx)
+* [OTB-100](http://cvlab.hanyang.ac.kr/tracker_benchmark/index.html)
+* [UAV123](https://ivul.kaust.edu.sa/Pages/pub-benchmark-simulator-uav.aspx)
     
 
   

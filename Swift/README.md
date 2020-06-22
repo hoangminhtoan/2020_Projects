@@ -5,9 +5,9 @@ Study Swift programming language
 Create iOS app and port on store to earn money and then pay wife money back
 
 ### Reference
-Ebook: iOS13 Programming FUndamentals with Swift
-Ebook: Practical Artificial Intelligence with Swift
-
+* Ebook: iOS13 Programming FUndamentals with Swift
+* Ebook: Practical Artificial Intelligence with Swift
+* Diagram desgin tools: https://app.diagrams.net/
 
 
     
