@@ -16,3 +16,12 @@ let bounds = minMax(array: [8, -6, 2, 109, 3, 72])
 
 print("\(bounds.min)")
 print("\(bounds.max)")
+
+
+let someOptional: String? = "Hello World!"
+
+if let constantName = someOptional{
+    print("constantName contains a value, Here it is: \(constantName)")
+}
+
+print(3 << 0)
