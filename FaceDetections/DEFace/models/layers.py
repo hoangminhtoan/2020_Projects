@@ -59,7 +59,7 @@ class BasicBlock(nn.Module):
     expansion = 1
 
     def __init__(self, in_planes, out_planes, stride=1, downsample=None):
-        super(BasicBloc, self).__init__()
+        super(BasicBlock, self).__init__()
 
         self.conv1 = nn.Conv2d(
             in_planes, out_planes, kernel_size=3, stride=stride, padding=1, bias=False)

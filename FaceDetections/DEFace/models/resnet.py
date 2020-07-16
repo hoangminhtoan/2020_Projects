@@ -3,7 +3,7 @@ import torch
 import math
 import torch.utils.model_zoo as model_zoo
 from torchvision.ops import nms
-from layers import BasicBlock, Bottleneck, BBoxTransform, ClipBoxes, ContextModel
+from DEFace.models.layers import BasicBlock, BottleneckBlock, BBoxTransform, ClipBoxes, ContextModule
 from utils.anchors import Anchors
 from losses import losses
 
@@ -35,8 +35,8 @@ class PyramidFeatures(nn.Module):
         self.P3_2 = nn.Conv2d(feature_size, feature_size, kernel_size=3, stride=1, padding=1)
 
         # add P3 elementwise to C2
-        self.P2_1 = nn.Conv2d(C2_size, feature_size, kernel_size=1, stride=1, padding=0)
-        self.P2_2 = nn.Conv2d(feature_size, feature_size, kernel_size=3, stride=1, padding=1)
+        #self.P2_1 = nn.Conv2d(C2_size, feature_size, kernel_size=1, stride=1, padding=0)
+        #self.P2_2 = nn.Conv2d(feature_size, feature_size, kernel_size=3, stride=1, padding=1)
 
         # "P6 is obtained via a 3x3 stride-2 conv on C5"
         self.P6 = nn.Conv2d(C5_size, feature_size, kernel_size=3, stride=2, padding=1)
@@ -62,16 +62,17 @@ class PyramidFeatures(nn.Module):
         P3_upsampled_x = self.P3_upsampled(P3_x)
         P3_x = self.P3_2(P3_x)
 
-        P2_x = self.P2_1(C2)
-        P2_x = P2_x + P3_upsampled_x
-        P2_x = self.P2_2(P2_x)
+        #P2_x = self.P2_1(C2)
+        #P2_x = P2_x + P3_upsampled_x
+        #P2_x = self.P2_2(P2_x)
 
         P6_x = self.P6(C5)
 
         P7_x = self.P7_1(P6_x)
         P7_x = self.P7_2(P7_x)
 
-        return [P2_x, P3_x, P4_x, P5_x, P6_x, P7_x]
+        #return [P2_x, P3_x, P4_x, P5_x, P6_x, P7_x]
+        return [P3_x, P4_x, P5_x, P6_x, P7_x]
 
 class RegressionModel(nn.Module):
     def __init__(self, num_features_in, num_anchors=6, feature_size=256):
@@ -186,7 +187,7 @@ class ResNet(nn.Module):
 
         self.regressionModel = RegressionModel(256)
         self.classificationModel = ClassificationModel(256, num_classes=num_classes)
-        self.contextModel = LevelAttentionModel(256)
+        self.contextModel = ContextModel(256)
 
         self.anchors = Anchors()
 
@@ -194,7 +195,7 @@ class ResNet(nn.Module):
 
         self.clipBoxes = ClipBoxes()
 
-        self.contextLoss = losses.Con()
+        self.contextLoss = losses.ContextLoss()
 
         self.focalLoss = losses.FocalLoss()
 
@@ -215,8 +216,8 @@ class ResNet(nn.Module):
         self.regressionModel.output.weight.data.fill_(0)
         self.regressionModel.output.bias.data.fill_(0)
 
-        self.levelattentionModel.conv5.weight.data.fill_(0)
-        self.levelattentionModel.conv5.bias.data.fill_(0)
+        self.contextModel.conv5.weight.data.fill_(0)
+        self.contextModel.conv5.bias.data.fill_(0)
 
         self.freeze_bn()
 
@@ -262,8 +263,7 @@ class ResNet(nn.Module):
 
         features = self.fpn([x1, x2, x3, x4])
 
-        attention = [self.levelattentionModel(feature) for feature in features]
-
+        attention = [self.contextModel(feature) for feature in features]
 
         features = [features[i] * torch.exp(attention[i]) for i in range(len(features))]
 
@@ -275,8 +275,8 @@ class ResNet(nn.Module):
 
         if self.training:
             clc_loss, reg_loss = self.focalLoss(classification, regression, anchors, annotations)
-            mask_loss = self.levelattentionLoss(img_batch.shape, attention, annotations)
-            return clc_loss, reg_loss, mask_loss
+            context_loss = self.contextLoss(img_batch.shape, attention, annotations)
+            return clc_loss, reg_loss, context_loss
         else:
             transformed_anchors = self.regressBoxes(anchors, regression)
             transformed_anchors = self.clipBoxes(transformed_anchors, img_batch)
