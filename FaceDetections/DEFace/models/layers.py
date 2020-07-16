@@ -3,7 +3,10 @@ import torch.nn as nn
 import numpy as np
 
 # Squeeze and Excitation Module
-
+def conv3x3(in_planes, out_planes, stride=1):
+    """3x3 convolution with padding"""
+    return nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride,
+                     padding=1, bias=False)
 
 class SELayer(nn.Module):
     def __init__(self, channels, reduction=16):
@@ -58,15 +61,13 @@ class BAMLayer(nn.Module):
 class BasicBlock(nn.Module):
     expansion = 1
 
-    def __init__(self, in_planes, out_planes, stride=1, downsample=None):
+    def __init__(self, inplanes, planes, stride=1, downsample=None):
         super(BasicBlock, self).__init__()
-
-        self.conv1 = nn.Conv2d(
-            in_planes, out_planes, kernel_size=3, stride=stride, padding=1, bias=False)
-        self.conv2 = nn.Conv2d(
-            out_planes, out_planes, kernel_size=3, stride=stride, padding=1, bias=False)
-        self.bn = nn.BatchNorm2d(out_planes)
+        self.conv1 = conv3x3(inplanes, planes, stride)
+        self.bn1 = nn.BatchNorm2d(planes)
         self.relu = nn.ReLU(inplace=True)
+        self.conv2 = conv3x3(planes, planes)
+        self.bn2 = nn.BatchNorm2d(planes)
         self.downsample = downsample
         self.stride = stride
 
@@ -74,11 +75,11 @@ class BasicBlock(nn.Module):
         residual = x
 
         out = self.conv1(x)
-        out = self.bn(out)
+        out = self.bn1(out)
         out = self.relu(out)
 
         out = self.conv2(out)
-        out = self.bn(out)
+        out = self.bn2(out)
 
         if self.downsample is not None:
             residual = self.downsample(x)
@@ -92,21 +93,18 @@ class BasicBlock(nn.Module):
 class BottleneckBlock(nn.Module):
     expansion = 4
 
-    def __init__(self, in_planes, out_planes, stride=1, downsample=None):
+    def __init__(self, inplanes, planes, stride=1, downsample=None):
         super(BottleneckBlock, self).__init__()
-
-        self.conv1 = nn.Conv2d(in_planes, out_planes,
-                               kernel_size=1, bias=False)
-        self.bn1 = nn.BatchNorm2d(out_planes)
-        self.conv2 = nn.Conv2d(
-            out_planes, out_planes, kernel_size=3, stride=stride, padding=1, bias=False)
-        self.bn2 = nn.BatchNorm2d(out_planes)
-        self.conv3 = nn.Conv2d(out_planes, out_planes *
-                               4, kernel_size=1, bias=False)
-        self.bn3 = nn.BatchNorm2d(out_planes * 4)
+        self.conv1 = nn.Conv2d(inplanes, planes, kernel_size=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(planes)
+        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=stride,
+                               padding=1, bias=False)
+        self.bn2 = nn.BatchNorm2d(planes)
+        self.conv3 = nn.Conv2d(planes, planes * 4, kernel_size=1, bias=False)
+        self.bn3 = nn.BatchNorm2d(planes * 4)
         self.relu = nn.ReLU(inplace=True)
-        self.stride = stride
         self.downsample = downsample
+        self.stride = stride
 
     def forward(self, x):
         residual = x
@@ -129,7 +127,6 @@ class BottleneckBlock(nn.Module):
         out = self.relu(out)
 
         return out
-
 
 class BasicSEBlock(nn.Module):
     expansion = 1
@@ -213,7 +210,7 @@ class BottleneckSEBlock(nn.Module):
 # Additional Attention Context Module
 
 class ContextModule(nn.Module):
-    def __init(self, in_planes, out_planes=256):
+    def __init__(self, in_planes, out_planes=256):
         super(ContextModule, self).__init__()
 
         self.conv1 = nn.Conv2d(in_planes, out_planes, kernel_size=3, padding=1)

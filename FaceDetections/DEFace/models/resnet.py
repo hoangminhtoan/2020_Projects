@@ -16,7 +16,7 @@ model_urls = {
 }
 
 class PyramidFeatures(nn.Module):
-    def __init__(self, C2_size, C3_size, C4_size, C5_size, feature_size=256):
+    def __init__(self, C3_size, C4_size, C5_size, feature_size=256):
         super(PyramidFeatures, self).__init__()
 
         # upsample C5 to get P5 from the FPN paper
@@ -31,7 +31,7 @@ class PyramidFeatures(nn.Module):
 
         # add P4 elementwise to C3
         self.P3_1 = nn.Conv2d(C3_size, feature_size, kernel_size=1, stride=1, padding=0)
-        self.P3_upsampled = nn.Upsample(scale_factor=2, mode='nearest')
+        #self.P3_upsampled = nn.Upsample(scale_factor=2, mode='nearest')
         self.P3_2 = nn.Conv2d(feature_size, feature_size, kernel_size=3, stride=1, padding=1)
 
         # add P3 elementwise to C2
@@ -46,7 +46,7 @@ class PyramidFeatures(nn.Module):
         self.P7_2 = nn.Conv2d(feature_size, feature_size, kernel_size=3, stride=2, padding=1)
 
     def forward(self, inputs):
-        C2, C3, C4, C5 = inputs
+        C3, C4, C5 = inputs
 
         P5_x = self.P5_1(C5)
         P5_upsampled_x = self.P5_upsampled(P5_x)
@@ -59,7 +59,7 @@ class PyramidFeatures(nn.Module):
 
         P3_x = self.P3_1(C3)
         P3_x = P3_x + P4_upsampled_x
-        P3_upsampled_x = self.P3_upsampled(P3_x)
+        #P3_upsampled_x = self.P3_upsampled(P3_x)
         P3_x = self.P3_2(P3_x)
 
         #P2_x = self.P2_1(C2)
@@ -75,7 +75,7 @@ class PyramidFeatures(nn.Module):
         return [P3_x, P4_x, P5_x, P6_x, P7_x]
 
 class RegressionModel(nn.Module):
-    def __init__(self, num_features_in, num_anchors=6, feature_size=256):
+    def __init__(self, num_features_in, num_anchors=9, feature_size=256):
         super(RegressionModel, self).__init__()
 
         self.conv1 = nn.Conv2d(num_features_in, feature_size, kernel_size=3, padding=1)
@@ -114,7 +114,7 @@ class RegressionModel(nn.Module):
 
 
 class ClassificationModel(nn.Module):
-    def __init__(self, num_features_in, num_anchors=6, num_classes=80, prior=0.01, feature_size=256):
+    def __init__(self, num_features_in, num_anchors=9, num_classes=80, prior=0.01, feature_size=256):
         super(ClassificationModel, self).__init__()
 
         self.num_classes = num_classes
@@ -177,7 +177,7 @@ class ResNet(nn.Module):
         if block == BasicBlock:
             fpn_sizes = [self.layer1[layers[0] - 1].conv2.out_channels, self.layer2[layers[1] - 1].conv2.out_channels, 
                         self.layer3[layers[2] - 1].conv2.out_channels, self.layer4[layers[3] - 1].conv2.out_channels]
-        elif block == Bottleneck:
+        elif block == BottleneckBlock:
             fpn_sizes = [self.layer1[layers[0] - 1].conv3.out_channels, self.layer2[layers[1] - 1].conv3.out_channels, 
                         self.layer3[layers[2] - 1].conv3.out_channels, self.layer4[layers[3] - 1].conv3.out_channels]
         else:
@@ -187,7 +187,7 @@ class ResNet(nn.Module):
 
         self.regressionModel = RegressionModel(256)
         self.classificationModel = ClassificationModel(256, num_classes=num_classes)
-        self.contextModel = ContextModel(256)
+        self.contextModel = ContextModule(256)
 
         self.anchors = Anchors()
 
@@ -261,7 +261,7 @@ class ResNet(nn.Module):
         x3 = self.layer3(x2)
         x4 = self.layer4(x3)
 
-        features = self.fpn([x1, x2, x3, x4])
+        features = self.fpn([x2, x3, x4])
 
         attention = [self.contextModel(feature) for feature in features]
 

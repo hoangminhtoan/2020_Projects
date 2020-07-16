@@ -1,0 +1,28 @@
+@author: Toan Minh Hoang
+@date time: 2020/07/16
+
+@description: Training DEFace network
+
+@network info:
+
+# Anchor
+1. Levels = 3, 4, 5, 6, 7
+2. Strides = [2 ** x for x in self.pyramid_levels]
+3. Size = [2 ** (x + 1) for x in self.pyramid_levels]
+4. Ratios = np.array([0.5, 1, 2])
+5. Scales = np.array([2 ** 0, 2 ** (1.0 / 3.0), 2 ** (2.0 / 3.0)])
+
+# Loss
+1. Classification Loss (Focal Loss)
+2. Regression Loss
+3. Context Loss
+
+# Network 
+1. Backbone: ResNet34
+2. RetinaNet 
+3. ContextModule
+
+@script:
+python train.py --csv_train /media/toanmh/Workspace/Datasets/WiderFace/WIDER_train/train.csv --csv_val /media/toanmh/Workspace/Datasets/WiderFace/WIDER_val/val.csv --csv_classes /media/toanmh/Workspace/Datasets/WiderFace/classes.csv --depth 34 --pretrained resnet34-333f7ec4.pth --model_name deface
+
+@result
