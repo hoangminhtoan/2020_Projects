@@ -76,13 +76,13 @@ def main(args=None):
     else:
         model_dict = model.state_dict()
         pretrained_model_dict = torch.load('weights/' + parser.pretrained)
-        pretrained_model_dict = {k: v for k, v in pretrained_model_dict.imtes() if k in model_dict}
+        pretrained_model_dict = {k: v for k, v in pretrained_model_dict.items() if k in model_dict}
         model_dict.update(pretrained_model_dict)
         model.load_state_dict(model_dict)
         print('Load pretrained backbone')
 
     print(model)
-    model = torch.nn.DataPallel(model, devices_ids=[0])
+    model = torch.nn.DataParallel(model, device_ids=[0])
     model.cuda()
 
     model.training = True

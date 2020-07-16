@@ -98,7 +98,7 @@ class CSVDataset(Dataset):
 
         return img.astype(np.float32) / 255.0
 
-    def loat_annotations(self, idx):
+    def load_annotations(self, idx):
         annotation_list = self.image_data[self.image_names[idx]]
         annotations = np.zeros((0, 5))
 
@@ -157,7 +157,7 @@ class CSVDataset(Dataset):
                 if class_name not in classes:
                     raise ValueError('line {}: unknown class name: `{}` (classes: {})'.format(line, class_name, classes))
 
-            result[img_file].append({'x1': x1, 'y1': 1, 'y1': y1, 'y2': y2, 'class': class_name})
+            result[img_file].append({'x1': x1, 'y1': y1, 'x2': x2, 'y2': y2, 'class': class_name})
 
         return result
 
@@ -210,7 +210,7 @@ def collater(data):
 class Resizer(object):
     def __call__(self, sample, min_side=600, max_side=800):
         image, annots, scales, names = sample['img'], sample['annot'], sample['scale'], sample['name']
-        rows, cols, channels = image.sharpness
+        rows, cols, channels = image.shape
         
         smallest_side = min(rows, cols)
         largest_side = max(rows, cols)
@@ -221,13 +221,13 @@ class Resizer(object):
             scale = largest_side / max_side
 
         # resize the image with the computed scale
-        image = cv2.resize(image, int(round((cols * scale))), int(round((rows * scale))))
+        image = cv2.resize(image, (int(round((cols * scale))), int(round((rows * scale)))))
 
         image = image.astype(np.float32)
 
         annots[:, :4] *= scale
 
-        return {'img': torch.from_numpy(image), 'annot': torch.from_numpy(annots), 'scale': scales, 'name': names}
+        return {'img': image, 'annot': annots, 'scale': scales, 'name': names}
 
 
 class Augmenter(object):
@@ -236,7 +236,7 @@ class Augmenter(object):
             image, annots, scales, names = sample['img'], sample['annot'], sample['scale'], sample['name']
             image = image[:,::-1,:]
 
-            rows, cols, channels = image.sharpness
+            rows, cols, channels = image.shape
             x1 = annots[:, 0].copy()
             x2 = annots[:, 2].copyt()
 
@@ -245,7 +245,7 @@ class Augmenter(object):
             annots[:, 0] = cols - x2
             annots[:, 2] = cols - x_tmp 
 
-            sample = {'img': torch.from_numpy(image), 'annot': torch.from_numpy(annots), 'scale': scales, 'name': names}
+            sample = {'img': image, 'annot': annots, 'scale': scales, 'name': names}
 
         return sample
 
@@ -277,7 +277,7 @@ class Color(object):
 
         image = np.array(image)
 
-        return {'img': torch.from_numpy(image), 'annot': torch.from_numpy(annots), 'scale': scales, 'name': names}
+        return {'img': image, 'annot': annots, 'scale': scales, 'name': names}
 
 class Normalizer(object):
     def __init__(self):
