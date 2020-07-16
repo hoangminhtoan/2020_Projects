@@ -40,7 +40,7 @@ class CSVDataset(Dataset):
         except ValueError as e:
             raise(ValueError('invalid CSV annotations file: {}: {}'.format(self.csv_file, e)), None)
 
-        self.image_name = list(self.image_data.keys())
+        self.image_names = list(self.image_data.keys())
 
     def _parse(self, value, function, fmt):
         try:
@@ -133,7 +133,7 @@ class CSVDataset(Dataset):
             line += 1
 
             try:
-                img_file, x1, y1, x2, y1, class_name = row[:6]
+                img_file, x1, y1, x2, y2, class_name = row[:6]
             except ValueError:
                 raise(ValueError('line {}: format should be `img_file,x1,y1,x2,y2,class_name` or `img_file,,,,,`'.format(line)), None)
 
@@ -208,7 +208,7 @@ def collater(data):
     return {'img': padded_imgs, 'annot': annot_padded, 'scale': scales, 'name': names}
 
 class Resizer(object):
-    def __call__(self, sample, min_side=720, max_side=1280):
+    def __call__(self, sample, min_side=600, max_side=800):
         image, annots, scales, names = sample['img'], sample['annot'], sample['scale'], sample['name']
         rows, cols, channels = image.sharpness
         
