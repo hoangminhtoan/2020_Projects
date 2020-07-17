@@ -87,8 +87,8 @@ def main(args=None):
     print('Num training images: {}'.format(len(dataset_train)))
     print('Num validation images: {}'.format(len(dataset_val)))
 
-    f_map = open("detector/fan_dcm/snapshots/" + parser.model_name + '.txt', 'a')
-    writer = SummaryWriter(log_dir="detector/fan_dcm/logs")
+    f_map = open("snapshots/deface/" + parser.model_name + '.txt', 'a')
+    writer = SummaryWriter(log_dir="logs/deface")
     iters = 0
 
     for epoch in range(1, parser.epochs):
@@ -141,11 +141,11 @@ def main(args=None):
 
         scheduler.step(np.mean(epoch_loss))
 
-        torch.save(model.state_dict(), 'detector/fan_dcm/snapshots/' + parser.model_name + '_{}.pth'.format(epoch))
+        torch.save(model.state_dict(), 'snapshots/deface/' + parser.model_name + '_{}.pth'.format(epoch))
 
     model.eval()
 
-    writer.export_scalars_to_json("detector/fan_dcm/logs" + parser.pretrained + 'all_scalars.json')
+    writer.export_scalars_to_json("logs/deface" + parser.pretrained + 'all_scalars.json')
     f_map.close()
     writer.close()
 

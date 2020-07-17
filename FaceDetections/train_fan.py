@@ -10,7 +10,7 @@ from torchvision import transforms
 
 from tensorboardX import SummaryWriter
 
-from detector.models import deface
+from detector.models import fan
 
 from detector.utils.dataloader import CSVDataset, AspectRatioBasedSampler, collater, Resizer, Normalizer
 import evaluations.csv_eval as csv_eval
@@ -51,11 +51,11 @@ def main(args=None):
 
     # Create the model
     if parser.depth == 18:
-        model = deface.resnet18(num_classes=dataset_train.num_classes(), pretrained=True)
+        model = fan.resnet18(num_classes=dataset_train.num_classes(), pretrained=True)
     elif parser.depth == 34:
-        model = deface.resnet34(num_classes=dataset_train.num_classes(), pretrained=True)
+        model = fan.resnet34(num_classes=dataset_train.num_classes(), pretrained=True)
     elif parser.depth == 50:
-        model = deface.resnet50(num_classes=dataset_train.num_classes(), pretrained=True)
+        model = fan.resnet50(num_classes=dataset_train.num_classes(), pretrained=True)
     else:
         raise ValueError("Unsupported model depth, must be one of 18, 34, 50, 101, 152")
 
@@ -87,8 +87,8 @@ def main(args=None):
     print('Num training images: {}'.format(len(dataset_train)))
     print('Num validation images: {}'.format(len(dataset_val)))
 
-    f_map = open("detector/fan_dcm/snapshots/" + parser.model_name + '.txt', 'a')
-    writer = SummaryWriter(log_dir="detector/fan_dcm/logs")
+    f_map = open("snapshots/fan/" + parser.model_name + '.txt', 'a')
+    writer = SummaryWriter(log_dir="logs/fan/")
     iters = 0
 
     for epoch in range(1, parser.epochs):
@@ -141,11 +141,11 @@ def main(args=None):
 
         scheduler.step(np.mean(epoch_loss))
 
-        torch.save(model.state_dict(), 'detector/fan_dcm/snapshots/' + parser.model_name + '_{}.pth'.format(epoch))
+        torch.save(model.state_dict(), 'snapshots/fan/' + parser.model_name + '_{}.pth'.format(epoch))
 
     model.eval()
 
-    writer.export_scalars_to_json("detector/fan_dcm/logs" + parser.pretrained + 'all_scalars.json')
+    writer.export_scalars_to_json("logs/fan" + parser.pretrained + 'all_scalars.json')
     f_map.close()
     writer.close()
 
