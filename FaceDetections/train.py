@@ -1,34 +1,25 @@
-import time
-import os 
-import copy 
-import argparse 
-import pdb 
-import collections 
-import sys 
+import os
+import argparse
+import collections
 
-import numpy as np 
+import numpy as np
 
-import torch 
-import torch.nn as nn 
-import torch.optim as optim 
-from torch.optim import lr_scheduler 
-from torch.autograd import Variable 
-from torch.utils.data import Dataset, DataLoader
-from torchvision import datasets, models, transforms
-import torchvision
+import torch
+import torch.optim as optim
+from torch.utils.data import DataLoader
+from torchvision import transforms
 
 from tensorboardX import SummaryWriter
 
-import DEFace.models.resnet as net
-from utils.anchors import Anchors
-from utils.dataloader import *
+import detector.fan as net
 
+from utils.dataloader import CSVDataset, AspectRatioBasedSampler, collater, Resizer, Normalizer
 import evaluations.csv_eval as csv_eval
-import cv2 
 
 print('CUDA available: {}'.format(torch.cuda.is_available()))
 
 ckpt = False
+
 
 def main(args=None):
     parser = argparse.ArgumentParser(description='Simple training script for training a small face detection network')
@@ -46,27 +37,26 @@ def main(args=None):
     parser = parser.parse_args(args)
 
     # Create the data loaders
-    dataset_train = CSVDataset(csv_file=parser.csv_train, class_list=parser.csv_classes,
-                            transform=transforms.Compose([Resizer(), Normalizer()]))
+    dataset_train = CSVDataset(train_file=parser.csv_train, class_list=parser.csv_classes,
+                               transform=transforms.Compose([Resizer(), Normalizer()]))
     if parser.csv_val is not None:
-        dataset_val = CSVDataset(csv_file=parser.csv_val, class_list=parser.csv_classes,
-                                transform=transforms.Compose([Resizer(), Normalizer()]))
+        dataset_val = CSVDataset(train_file=parser.csv_val, class_list=parser.csv_classes,
+                                 transform=transforms.Compose([Resizer(), Normalizer()]))
 
-    sampler = AspectRatioBasedSampler(dataset_train, batch_size=2, drop_last=False)
-    dataloader_train = DataLoader(dataset_train, num_workers=16, collate_fn=collater, batch_sampler=sampler)
+    sampler = AspectRatioBasedSampler(dataset_train, batch_size=1, drop_last=False)
+    dataloader_train = DataLoader(dataset_train, num_workers=8, collate_fn=collater, batch_sampler=sampler)
 
     if dataset_val is not None:
-        sampler_val = AspectRatioBasedSampler(dataset_val, batch_size=2, drop_last=False)
-        dataloader_val = DataLoader(dataset_val, num_workers=16, collate_fn=collater, batch_sampler=sampler)
+        sampler_val = AspectRatioBasedSampler(dataset_val, batch_size=1, drop_last=False)
+        dataloader_val = DataLoader(dataset_val, num_workers=8, collate_fn=collater, batch_sampler=sampler)
 
-    
     # Create the model
     if parser.depth == 18:
-        model = net.resnet18(num_classes=dataset_train.num_classes())
+        model = net.resnet18(num_classes=dataset_train.num_classes(), pretrained=True)
     elif parser.depth == 34:
-        model = net.resnet34(num_classes=dataset_train.num_classes())
+        model = net.resnet34(num_classes=dataset_train.num_classes(), pretrained=True)
     elif parser.depth == 50:
-        model = net.resnet50(num_classes=dataset_train.num_classes())
+        model = net.resnet50(num_classes=dataset_train.num_classes(), pretrained=True)
     else:
         raise ValueError("Unsupported model depth, must be one of 18, 34, 50, 101, 152")
 
@@ -98,8 +88,8 @@ def main(args=None):
     print('Num training images: {}'.format(len(dataset_train)))
     print('Num validation images: {}'.format(len(dataset_val)))
 
-    f_map = open("DEFace/snapshots/20200716/" + parser.model_name + '.txt', 'a')
-    writer = SummaryWriter(log_dir="DEFace/logs/20200716")
+    f_map = open("detector/fan_dcm/snapshots/" + parser.model_name + '.txt', 'a')
+    writer = SummaryWriter(log_dir="detector/fan_dcm/logs")
     iters = 0
 
     for epoch in range(1, parser.epochs):
@@ -114,16 +104,16 @@ def main(args=None):
             optimizer.zero_grad()
             cls_loss, reg_loss, context_loss = model([data['img'].cuda().float(), data['annot']])
 
-            cls_loss = cls_loss.mean() 
+            cls_loss = cls_loss.mean()
             reg_loss = reg_loss.mean()
             context_loss = context_loss.mean()
 
             loss = cls_loss + reg_loss + context_loss
 
             if loss == 0:
-                continue 
+                continue
 
-            loss.backward() 
+            loss.backward()
 
             torch.nn.utils.clip_grad_norm_(model.parameters(), 0.1)
 
@@ -134,17 +124,17 @@ def main(args=None):
             epoch_loss.append(float(loss))
 
             print('Epoch: {} | Iteration: {} | Classification Loss: {:1.5f} | Regression Loss: {:1.5f} | Context Loss: {:1.5f}\
-                 | Running Loss: {:1.5f}'.format(epoch, iter_num, float(cls_loss), float(reg_loss), float(context_loss), np.mean(loss_hist)))
+                 | Running Loss: {:1.5f}'.format(epoch, iter_num, float(cls_loss), float(reg_loss), float(context_loss),
+                                                 np.mean(loss_hist)))
 
-            
             writer.add_scalar('classification loss', cls_loss, iters)
             writer.add_scalar('regression loss', reg_loss, iters)
             writer.add_scalar('context loss', context_loss, iters)
 
             del cls_loss
-            del reg_loss 
+            del reg_loss
             del context_loss
-        
+
         if parser.csv_val is not None:
             print('Evaluating dataset...')
             mAP = csv_eval.evaluate(dataset_val, model)
@@ -152,13 +142,14 @@ def main(args=None):
 
         scheduler.step(np.mean(epoch_loss))
 
-        torch.save(model.state_dict(), 'DEFace/snapshots/20200716/' + parser.model_name + '_{}.pth'.format(epoch))
+        torch.save(model.state_dict(), 'detector/fan_dcm/snapshots/' + parser.model_name + '_{}.pth'.format(epoch))
 
     model.eval()
 
-    writer.export_scalars_to_json("DEFace/logs/20200716" + parser.pretrained + 'all_scalars.json')
-    f_map.close() 
+    writer.export_scalars_to_json("detector/fan_dcm/logs" + parser.pretrained + 'all_scalars.json')
+    f_map.close()
     writer.close()
+
 
 if __name__ == '__main__':
     main()

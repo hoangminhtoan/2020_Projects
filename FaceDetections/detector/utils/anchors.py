@@ -14,8 +14,7 @@ class Anchors(nn.Module):
         if sizes is None:
             self.sizes = [2 ** (x + 1) for x in self.pyramid_levels]
         if ratios is None:
-            # self.ratios = np.array([1., 1.5, 2., 2.5, 3.])
-            self.ratios = np.array([0.5, 1., 2.])
+            self.ratios = np.array([0.5, 1, 2])
         if scales is None:
             self.scales = np.array([2 ** 0, 2 ** (1.0 / 3.0), 2 ** (2.0 / 3.0)])
 
@@ -35,7 +34,10 @@ class Anchors(nn.Module):
 
         all_anchors = np.expand_dims(all_anchors, axis=0)
 
-        return torch.from_numpy(all_anchors.astype(np.float32)).cuda()
+        if torch.cuda.is_available():
+            return torch.from_numpy(all_anchors.astype(np.float32)).cuda()
+        else:
+            return torch.from_numpy(all_anchors.astype(np.float32))
 
 
 def generate_anchors(base_size=16, ratios=None, scales=None):
@@ -74,7 +76,6 @@ def generate_anchors(base_size=16, ratios=None, scales=None):
 
 def compute_shape(image_shape, pyramid_levels):
     """Compute shapes based on pyramid levels.
-
     :param image_shape:
     :param pyramid_levels:
     :return:
