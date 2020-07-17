@@ -1,4 +1,3 @@
-import os
 import argparse
 import collections
 
@@ -11,9 +10,9 @@ from torchvision import transforms
 
 from tensorboardX import SummaryWriter
 
-import detector.fan as net
+from detector.models import deface
 
-from utils.dataloader import CSVDataset, AspectRatioBasedSampler, collater, Resizer, Normalizer
+from detector.utils.dataloader import CSVDataset, AspectRatioBasedSampler, collater, Resizer, Normalizer
 import evaluations.csv_eval as csv_eval
 
 print('CUDA available: {}'.format(torch.cuda.is_available()))
@@ -44,19 +43,19 @@ def main(args=None):
                                  transform=transforms.Compose([Resizer(), Normalizer()]))
 
     sampler = AspectRatioBasedSampler(dataset_train, batch_size=1, drop_last=False)
-    dataloader_train = DataLoader(dataset_train, num_workers=8, collate_fn=collater, batch_sampler=sampler)
+    dataloader_train = DataLoader(dataset_train, num_workers=1, collate_fn=collater, batch_sampler=sampler)
 
     if dataset_val is not None:
         sampler_val = AspectRatioBasedSampler(dataset_val, batch_size=1, drop_last=False)
-        dataloader_val = DataLoader(dataset_val, num_workers=8, collate_fn=collater, batch_sampler=sampler)
+        dataloader_val = DataLoader(dataset_val, num_workers=1, collate_fn=collater, batch_sampler=sampler)
 
     # Create the model
     if parser.depth == 18:
-        model = net.resnet18(num_classes=dataset_train.num_classes(), pretrained=True)
+        model = deface.resnet18(num_classes=dataset_train.num_classes(), pretrained=True)
     elif parser.depth == 34:
-        model = net.resnet34(num_classes=dataset_train.num_classes(), pretrained=True)
+        model = deface.resnet34(num_classes=dataset_train.num_classes(), pretrained=True)
     elif parser.depth == 50:
-        model = net.resnet50(num_classes=dataset_train.num_classes(), pretrained=True)
+        model = deface.resnet50(num_classes=dataset_train.num_classes(), pretrained=True)
     else:
         raise ValueError("Unsupported model depth, must be one of 18, 34, 50, 101, 152")
 

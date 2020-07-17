@@ -1,18 +1,13 @@
 import torch.nn as nn
 import torch
 import math
-import time
-import os
-import numpy as np
-import matplotlib.pyplot as plt
 import torch.utils.model_zoo as model_zoo
 from torchvision.ops import nms
-from torch.nn import init
-from utils.baselayers import BasicBlock, BottleNeckBlock, BBoxTransform, ClipBoxes
-from utils.anchors import Anchors
-import losses.losses
 
-from utils.dataloader import UnNormalizer
+from ..utils.baselayers import BasicBlock, BottleNeckBlock, BBoxTransform, ClipBoxes
+from ..utils.anchors import Anchors
+from ..losses import losses
+from detector.utils.dataloader import UnNormalizer
 unnormalize = UnNormalizer()
 
 model_urls = {
@@ -77,43 +72,33 @@ class RegressionModel(nn.Module):
         super(RegressionModel, self).__init__()
 
         self.conv1 = nn.Conv2d(num_features_in, feature_size, kernel_size=3, padding=1)
-        self.bn1 = nn.BatchNorm2d(feature_size)
         self.act1 = nn.ReLU()
 
         self.conv2 = nn.Conv2d(feature_size, feature_size, kernel_size=3, padding=1)
-        self.bn2 = nn.BatchNorm2d(feature_size)
         self.act2 = nn.ReLU()
 
         self.conv3 = nn.Conv2d(feature_size, feature_size, kernel_size=3, padding=1)
-        self.bn3 = nn.BatchNorm2d(feature_size)
         self.act3 = nn.ReLU()
 
         self.conv4 = nn.Conv2d(feature_size, feature_size, kernel_size=3, padding=1)
-        self.bn4 = nn.BatchNorm2d(feature_size)
         self.act4 = nn.ReLU()
 
         self.output = nn.Conv2d(feature_size, num_anchors * 4, kernel_size=3, padding=1)
-        self.bn_output = nn.BatchNorm2d(feature_size)
 
     def forward(self, x):
         out = self.conv1(x)
-        out = self.bn1(out)
         out = self.act1(out)
 
         out = self.conv2(out)
-        out = self.bn2(out)
         out = self.act2(out)
 
         out = self.conv3(out)
-        out = self.bn3(out)
         out = self.act3(out)
 
         out = self.conv4(out)
-        out = self.bn4(out)
         out = self.act4(out)
 
         out = self.output(out)
-        out = self.bn_output(out)
 
         # out is B x C x W x H, with C = 4*num_anchors
         out = out.permute(0, 2, 3, 1)
@@ -129,44 +114,34 @@ class ClassificationModel(nn.Module):
         self.num_anchors = num_anchors
 
         self.conv1 = nn.Conv2d(num_features_in, feature_size, kernel_size=3, padding=1)
-        self.bn1 = nn.BatchNorm2d(feature_size)
         self.act1 = nn.ReLU()
 
         self.conv2 = nn.Conv2d(feature_size, feature_size, kernel_size=3, padding=1)
-        self.bn2 = nn.BatchNorm2d(feature_size)
         self.act2 = nn.ReLU()
 
         self.conv3 = nn.Conv2d(feature_size, feature_size, kernel_size=3, padding=1)
-        self.bn3 = nn.BatchNorm2d(feature_size)
         self.act3 = nn.ReLU()
 
         self.conv4 = nn.Conv2d(feature_size, feature_size, kernel_size=3, padding=1)
-        self.bn4 = nn.BatchNorm2d(feature_size)
         self.act4 = nn.ReLU()
 
         self.output = nn.Conv2d(feature_size, num_anchors * num_classes, kernel_size=3, padding=1)
-        self.bn_output = nn.BatchNorm2d(num_anchors * num_classes)
         self.output_act = nn.Sigmoid()
 
     def forward(self, x):
         out = self.conv1(x)
-        out = self.bn1(out)
         out = self.act1(out)
 
         out = self.conv2(out)
-        out = self.bn2(out)
         out = self.act2(out)
 
         out = self.conv3(out)
-        out = self.bn3(out)
         out = self.act3(out)
 
         out = self.conv4(out)
-        out = self.bn4(out)
         out = self.act4(out)
 
         out = self.output(out)
-        out = self.bn_output(out)
         out = self.output_act(out)
 
         # out is B x C x W x H, with C = n_classes + n_anchors
@@ -252,9 +227,9 @@ class ResNet(nn.Module):
 
         self.clipBoxes = ClipBoxes()
 
-        self.attentionLoss = losses.losses.AttentionLoss()
+        self.attentionLoss = losses.AttentionLoss()
 
-        self.focalLoss = losses.losses.FocalLoss()
+        self.focalLoss = losses.FocalLoss()
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -356,7 +331,8 @@ class ResNet(nn.Module):
             return [nms_scores, nms_class, transformed_anchors[0, anchors_nms_idx, :]]
 
 
-def resnet18(self, num_classes, pretrained=False, **kwargs):
+
+def resnet18(num_classes, pretrained=False, **kwargs):
     """Constructs a ResNet-18 model.
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
@@ -367,29 +343,29 @@ def resnet18(self, num_classes, pretrained=False, **kwargs):
     return model
 
 
-def resnet34(self, num_classes, pretrained=False, **kwargs):
+def resnet34(num_classes, pretrained=False, **kwargs):
     """Constructs a ResNet-34 model.
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    model = ResNet(self, num_classes, BasicBlock, [3, 4, 6, 3], **kwargs)
+    model = ResNet(num_classes, BasicBlock, [3, 4, 6, 3], **kwargs)
     if pretrained:
         model.load_state_dict(model_zoo.load_url(model_urls['resnet34'], model_dir='./weights/'), strict=False)
     return model
 
 
-def resnet50(self, num_classes, pretrained=False, **kwargs):
+def resnet50(num_classes, pretrained=False, **kwargs):
     """Constructs a ResNet-50 model.
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    model = ResNet(self, num_classes, BottleNeckBlock, [3, 4, 6, 3], **kwargs)
+    model = ResNet(num_classes, BottleNeckBlock, [3, 4, 6, 3], **kwargs)
     if pretrained:
         model.load_state_dict(model_zoo.load_url(model_urls['resnet50'], model_dir='./weights/'), strict=False)
     return model
 
 
-def resnet101(self, num_classes, pretrained=False, **kwargs):
+def resnet101(num_classes, pretrained=False, **kwargs):
     """Constructs a ResNet-101 model.
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
@@ -400,7 +376,7 @@ def resnet101(self, num_classes, pretrained=False, **kwargs):
     return model
 
 
-def resnet152(self, num_classes, pretrained=False, **kwargs):
+def resnet152(num_classes, pretrained=False, **kwargs):
     """Constructs a ResNet-152 model.
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
