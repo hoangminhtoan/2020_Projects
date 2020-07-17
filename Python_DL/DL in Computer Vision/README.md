@@ -7,8 +7,8 @@
 The directory is categorized by model architecture, the further by framework. 
 
 ## Table Contents
-### [I. Image Classification](#image-classification)
-### [II. Object Detection](#object-detection)
-### [III. Generative Adversarial Network](#generative-adversarial-network)
+### [I. Image Classification](#i.-image-classification)
+### [II. Object Detection](#ii.-object-detection)
+### [III. Generative Adversarial Network](#iii.-generative-adversarial-network)
 
-### Image Classification
+### I. Image Classification
