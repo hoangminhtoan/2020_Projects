@@ -6,6 +6,7 @@
 This is my side project for [Hands-On Machine Learning with C++](https://www.packtpub.com/data/hands-on-machine-learning-with-c?utm_source=github&utm_medium=repository&utm_campaign=9781789955330)
 
 ** Dive into ML with C++ **
+
 ** Build, train, and deploy end-to-end machine learning and deep learning piplines **
 
 ## Purpose
