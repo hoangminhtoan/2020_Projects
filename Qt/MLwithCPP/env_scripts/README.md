@@ -1,8 +1,8 @@
 # Building development environment
 
 ## Table of Contents
- * [Building Development Environment with Docker](*building-development-environment-with-docker)
- * [Building Development Environment on Local Machine](*building-development-environment-on-local-machine)
+ * [Building Development Environment with Docker](#building-development-environment-with-docker)
+ * [Building Development Environment on Local Machine](#building-development-environment-on-local-machine)
 
 
 
