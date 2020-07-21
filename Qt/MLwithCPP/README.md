@@ -20,3 +20,6 @@ This is my side project for [Hands-On Machine Learning with C++](https://www.pac
 | Chapter  | Software required                                                                    | OS required                        |
 | -------- | -------------------------------------------------------------------------------------| -----------------------------------|
 | 1 - 13   |   C++, Python 3.5+, Android SDK, Google Cloud Platform (trial version)                | Windows, Mac OS X, and Linux (Any) |
+
+## References
+https://github.com/PacktPublishing/Hands-On-Machine-Learning-with-CPP
