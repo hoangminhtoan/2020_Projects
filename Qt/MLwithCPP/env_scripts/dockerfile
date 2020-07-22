@@ -1,5 +1,5 @@
 FROM ubuntu:18.04
-MAINTAINER toanmh hoangminhtoant2l1@yahoo.com
+MAINTAINER Kirill hoangminhtoant21l2@yahoo.com
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -7,15 +7,14 @@ RUN apt-get -y update
 RUN apt-get -y upgrade
 RUN apt-get install -y unzip
 
-RUN mkdir development
-ADD checkout_lib.sh /development
-RUN chmod 777 /development/checkout_lib.sh
-ADD install_lib.sh /development
-RUN chmod 777 /development/install_lib.sh
-ADD install_env.sh /development
-RUN chmod 777 /development/install_env.sh
-ADD install_android.sh /development
-RUN chmod 777 /development/install_android.sh
+RUN mkdir /workspace
+RUN mkdir /workspace/ml_with_cpp
+ADD checkout_lib.sh /workspace/ml_with_cpp
+RUN chmod 777 /workspace/ml_with_cpp/checkout_lib.sh
+ADD install_lib.sh /workspace/ml_with_cpp
+RUN chmod 777 /workspace/ml_with_cpp/install_lib.sh
+ADD install_env.sh /workspace/ml_with_cpp
+RUN chmod 777 /workspace/ml_with_cpp/install_env.sh
 
 
 RUN apt-get install -y build-essential
