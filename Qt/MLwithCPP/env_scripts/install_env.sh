@@ -3,6 +3,7 @@ set -x
 set -e
 
 DEV_DIR=$(cd ../development && pwd)
+CUR_DIR=$(pwd)
 
 mkdir $DEV_DIR/libs
 mkdir $DEV_DIR/libs/sources
@@ -59,4 +60,4 @@ echo "Install Shogun"
 echo "***** Install Complete! *****"
 
 # return back
-cd $DEV_DIR
+cd $CUR_DIR

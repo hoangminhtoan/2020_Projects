@@ -2,9 +2,10 @@
 set -x
 set -e
 
-START_DIR=$(cd ../ && pwd)
-mkdir $START_DIR/android
-cd $START_DIR/android
+DEV_DIR=$(cd ../development && pwd)
+CUR_DIR=$(pwd)
+mkdir $DEV_DIR/android
+cd $DEV_DIR/android
 
 wget https://dl.google.com/android/repository/sdk-tools-linux-4333796.zip
 unzip sdk-tools-linux-4333796.zip
@@ -21,10 +22,10 @@ cd pytorch/
 git checkout v1.2.0
 git submodule update --init --recursive
 
-export ANDROID_NDK=$START_DIR/android/ndk/20.0.5594570
+export ANDROID_NDK=$DEV_DIR/android/ndk/20.0.5594570
 export ANDROID_ABI='armeabi-v7a'
 
-$START_DIR/android/pytorch/scripts/build_android.sh \
+$DEV_DIR/android/pytorch/scripts/build_android.sh \
 -DBUILD_CAFFE2_MOBILE=OFF \
 -DBUILD_SHARED_LIBS=ON \
 -DCMAKE_PREFIX_PATH=$(python -c 'from distutils.sysconfig import get_python_lib; print(get_python_lib())') \

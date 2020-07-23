@@ -2,13 +2,14 @@
 set -x
 set -e
 
-START_DIR=$(cd ../development && pwd)
+DEV_DIR=$(cd ../development && pwd)
+CUR_DIR=$(pwd)
 REPOSITORY=$1
 COMMIT_HASH=$2
 
-cd $START_DIR
+cd $DEV_DIR
 git clone $REPOSITORY
 cd "$(basename "$REPOSITORY" .git)"
 git checkout $COMMIT_HASH
 git submodule update --init --recursive
-cd $START_DIR
+cd $CUR_DIR
