@@ -1,7 +1,10 @@
 FROM ubuntu:18.04
-MAINTAINER Kirill hoangminhtoant21l2@yahoo.com
+LABEL maitainer="hoangminhtoant21l2@yahoo.com"
 
 ENV DEBIAN_FRONTEND=noninteractive
+
+RUN echo "deb http://us.archive.ubuntu.com/ubuntu/ bionic main universe" >> /etc/apt/sources.list
+RUN echo "deb-src http://us.archive.ubuntu.com/ubuntu/ bionic main universe" >> /etc/apt/sources.list
 
 RUN apt-get -y update
 RUN apt-get -y upgrade
@@ -16,33 +19,31 @@ RUN chmod 777 /workspace/ml_with_cpp/install_lib.sh
 ADD install_env.sh /workspace/ml_with_cpp
 RUN chmod 777 /workspace/ml_with_cpp/install_env.sh
 
-
 RUN apt-get install -y build-essential
 RUN apt-get install -y gdb
 RUN apt-get install -y git
 RUN apt-get install -y cmake
 RUN apt-get install -y cmake-curses-gui
-RUN apt-get install -y python
-RUN apt-get install -y python-pip
+RUN apt-get install -y python python3
+RUN apt-get install -y python-pip python3-pip
 RUN apt-get install -y libblas-dev
 RUN apt-get install -y libopenblas-dev
 RUN apt-get install -y libatlas-base-dev
 RUN apt-get install -y liblapack-dev
 RUN apt-get install -y libboost-all-dev
-RUN apt-get install -y libopencv-core3.2
-RUN apt-get install -y libopencv-imgproc3.2
 RUN apt-get install -q -y libopencv-dev
+RUN apt-get install -y libopencv-core3.2
+RUN apt-get install -y libopencv-ml3.2
+RUN apt-get install -y libopencv-imgproc3.2
 RUN apt-get install -y libopencv-highgui3.2
 RUN apt-get install -y libopencv-highgui-dev
 RUN apt-get install -y libhdf5-dev
 RUN apt-get install -y libjson-c-dev
 RUN apt-get install -y libx11-dev
-RUN apt-get install -y openjdk-8-jdk
+RUN apt-get install -y openjdk-11-jdk
 RUN apt-get install -y wget
 RUN apt-get install -y ninja-build
 RUN apt-get install -y gnuplot
-RUN apt-get install -y vim
-RUN apt-get install -y python3-venv
 
 RUN pip install pyyaml
 RUN pip install typing
