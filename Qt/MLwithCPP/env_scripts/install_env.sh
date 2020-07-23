@@ -2,7 +2,7 @@
 set -x
 set -e
 
-DEV_DIR=$(cd ../ && pwd)
+DEV_DIR=$(cd ../development && pwd)
 
 mkdir $DEV_DIR/libs
 mkdir $DEV_DIR/libs/sources

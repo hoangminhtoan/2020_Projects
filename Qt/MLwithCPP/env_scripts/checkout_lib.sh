@@ -2,11 +2,11 @@
 set -x
 set -e
 
-START_DIR=$(cd ../ && pwd)
+START_DIR=$(cd ../development && pwd)
 REPOSITORY=$1
 COMMIT_HASH=$2
 
-cd $START_DIR/libs/sources
+cd $START_DIR
 git clone $REPOSITORY
 cd "$(basename "$REPOSITORY" .git)"
 git checkout $COMMIT_HASH
