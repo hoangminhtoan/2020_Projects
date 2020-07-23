@@ -19,4 +19,4 @@ cmake -DCMAKE_INSTALL_PREFIX=$START_DIR/libs $EXTRA_CMAKE_PARAMS ..
 cmake --build . --target install -- -j8
 cd ..
 rm -rf build
-cd $START_DIR
+cd $START_DIR/env_scripts

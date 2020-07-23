@@ -8,6 +8,7 @@ mkdir $DEV_DIR/libs
 mkdir $DEV_DIR/libs/sources
 
 # Shogun
+echo "Install Shogun"
 . ./install_lib.sh https://github.com/shogun-toolbox/shogun f7255cf2cc6b5116e50840816d70d21e7cc039bb -DBUILD_META_EXAMPLES=OFF -DHAVE_HDF5=ON -DHAVE_PROTOBUF=OFF
 
 # SharkML
@@ -55,7 +56,7 @@ mkdir $DEV_DIR/libs/sources
 # fast-cpp-csv-parser 
 . ./checkout_lib.sh https://github.com/ben-strasser/fast-cpp-csv-parser 3b439a664090681931c6ace78dcedac6d3a3907e
 
-
+echo "***** Install Complete! *****"
 
 # return back
 cd $DEV_DIR
