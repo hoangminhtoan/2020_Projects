@@ -2,7 +2,7 @@
 set -x
 set -e
 
-START_DIR=$(pwd)
+START_DIR=$(cd ../ && pwd)
 REPOSITORY=$1
 COMMIT_HASH=$2
 shift; shift;

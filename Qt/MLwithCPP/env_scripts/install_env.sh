@@ -2,10 +2,10 @@
 set -x
 set -e
 
-DEV_DIR=$(pwd)
+DEV_DIR=$(cd ../ && pwd)
 
-mkdir libs
-mkdir libs/sources
+mkdir $DEV_DIR/libs
+mkdir $DEV_DIR/libs/sources
 
 # Shogun
 . ./install_lib.sh https://github.com/shogun-toolbox/shogun f7255cf2cc6b5116e50840816d70d21e7cc039bb -DBUILD_META_EXAMPLES=OFF -DHAVE_HDF5=ON -DHAVE_PROTOBUF=OFF

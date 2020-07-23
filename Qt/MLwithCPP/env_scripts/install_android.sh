@@ -2,7 +2,7 @@
 set -x
 set -e
 
-START_DIR=$(pwd)
+START_DIR=$(cd ../ && pwd)
 mkdir $START_DIR/android
 cd $START_DIR/android
 
