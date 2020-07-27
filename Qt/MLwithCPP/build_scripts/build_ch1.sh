@@ -10,3 +10,17 @@ mkdir build
 cd build/
 cmake -DDLIB_PATH=$LIBS_DIR ..
 cmake --build . --target all
+
+
+cd $START_DIR/Chapter01/sharkml_samples/
+mkdir build
+cd build/
+cmake -DSHARK_PATH=$LIBS_DIR ..
+cmake --build . --target all
+
+
+cd $START_DIR/Chapter01/xtensor_samples/
+mkdir build
+cd build/
+cmake -DSHARK_PATH=$LIBS_DIR ..
+cmake --build . --target all
