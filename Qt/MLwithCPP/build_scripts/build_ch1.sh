@@ -22,5 +22,5 @@ cmake --build . --target all
 cd $START_DIR/Chapter01/xtensor_samples/
 mkdir build
 cd build/
-cmake -DSHARK_PATH=$LIBS_DIR ..
+cmake -DXTENSOR_PATH=$LIBS_DIR/include/ ..
 cmake --build . --target all
