@@ -1,0 +1,1 @@
+/usr/bin/c++  -std=c++17 -msse3 -fopenmp -Wall -Wextra  -rdynamic CMakeFiles/linalg-shark.dir/linalg_shark.cc.o  -o linalg-shark  -L/workspace/ml_with_cpp/development/libs/lib  -L/workspace/ml_with_cpp/development/libs/lib64 -Wl,-rpath,/workspace/ml_with_cpp/development/libs/lib:/workspace/ml_with_cpp/development/libs/lib64 -lshark -lcblas 
