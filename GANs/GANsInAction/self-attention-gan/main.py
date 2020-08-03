@@ -12,7 +12,7 @@ def main(config):
     data_loader = DataLoader(config.train, config.dataset, config.image_path, config.imsize, config.batch_size, shuffle=config.train)
 
     # Create directories if not exist
-    make_foder(config.model_save_path, config.version)
+    make_folder(config.model_save_path, config.version)
     make_folder(config.sample_path, config.version)
     make_folder(config.log_path, config.version)
     make_folder(config.attn_path, config.version)
@@ -20,12 +20,12 @@ def main(config):
     if config.train:
         if config.model == 'sagan':
             trainer = Trainer(data_loader.loader(), config)
-        elif config.model = 'qgan':
-            trainer = qgan_trainer(data_loader.loader(), config)
+        #elif config.model == 'qgan':
+            #trainer = qgan_trainer(data_loader.loader(), config)
         trainer.train()
-    else:
-        tester = Tester(data_loader.loader(), config)
-        tester.test() 
+    #else:
+        #tester = Tester(data_loader.loader(), config)
+        #tester.test() 
 
 if __name__ == '__main__':
     config = get_parameters()
