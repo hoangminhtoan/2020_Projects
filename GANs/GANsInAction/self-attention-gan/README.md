@@ -1,6 +1,6 @@
 # Self-Attention GAN
 
-Emplement [Self-Attention GAN](https://arxiv.org/abs/1805.08318) in Pytorch
+Implemention of paper [Self-Attention GAN](https://arxiv.org/abs/1805.08318) in Pytorch 
 
 ## Prerequiresites
  * Python 3.5+
@@ -37,3 +37,6 @@ $ cd samples/sagan_celeb
 or
 $ cd samples/sagan_lsun
 ```
+
+## References
+ * [Self-Attention Gan](https://github.com/heykeetae/Self-Attention-GAN)
