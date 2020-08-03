@@ -25,9 +25,9 @@ $ bash download.sh LSUN
 
 ### 3. Train
 ```bash
-$ python python main.py --batch_size 64 --imsize 64 --dataset celeb --adv_loss hinge --version sagan_celeb
+$ CUDA_VISIBLE_DEVICES=1 python main.py --batch_size 64 --imsize 64 --dataset celeb --adv_loss hinge --version sagan_celeb
 or
-$ python python main.py --batch_size 64 --imsize 64 --dataset lsun --adv_loss hinge --version sagan_lsun
+$ CUDA_VISIBLE_DEVICES=1 python main.py --batch_size 64 --imsize 64 --dataset lsun --adv_loss hinge --version sagan_lsun
 ```
 
 ### 4. Test
