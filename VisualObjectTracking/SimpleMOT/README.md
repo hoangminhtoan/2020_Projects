@@ -1,8 +1,8 @@
 Implementation paper [A Simple Baseline for Multi-Object Tracking](https://arxiv.org/pdf/2004.01888v4.pdf)
 
 [![Python](https://img.shields.io/badge/python-3.5%20%7C%203.6%20%7C%203.7%20%7C%203.8-blue)](https://www.python.org)
-[![Pytorch](https://img.shields.io/badge/pytorch-red)](https://pytorch.org/)
-[![conda](https://img.shields.io/badge/conda-black)](https://docs.conda.io/en/latest/miniconda.html)
+[![Pytorch](https://img.shields.io/badge/pytorch-1.6.0-red)](https://pytorch.org/)
+[![conda](https://img.shields.io/badge/conda-green)](https://docs.conda.io/en/latest/miniconda.html)
 
 ## Installation
  * Clone this repo
